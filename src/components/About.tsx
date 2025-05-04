@@ -2,14 +2,14 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { FaDownload, FaMapMarkerAlt, FaGraduationCap, FaBriefcase, FaStar } from 'react-icons/fa';
-import Timeline from './Timeline';
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+import { FaDownload, FaMapMarkerAlt, FaGraduationCap, FaBriefcase, FaStar, FaTimes } from 'react-icons/fa';
 
 export default function About() {
   const sectionRef = useRef<HTMLElement>(null);
   const imageRef = useRef<HTMLDivElement>(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [isProfileExpanded, setIsProfileExpanded] = useState(false);
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start end", "end start"]
@@ -23,7 +23,7 @@ export default function About() {
   // 3D tilt effect for the image
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      if (!imageRef.current) return;
+      if (!imageRef.current || isProfileExpanded) return;
       
       const rect = imageRef.current.getBoundingClientRect();
       const x = e.clientX - rect.left;
@@ -37,7 +37,20 @@ export default function About() {
     
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
+  }, [isProfileExpanded]);
+
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    if (isProfileExpanded) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+    
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [isProfileExpanded]);
 
   // Section animation variants
   const containerVariants = {
@@ -64,6 +77,133 @@ export default function About() {
       }
     }
   };
+
+  const modalVariants = {
+    hidden: { opacity: 0, scale: 0.8 },
+    visible: { 
+      opacity: 1, 
+      scale: 1,
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 25
+      }
+    },
+    exit: { 
+      opacity: 0, 
+      scale: 0.8,
+      transition: {
+        duration: 0.2
+      }
+    }
+  };
+
+  // Create profile component that can be reused in both the main view and modal
+  const ProfilePlaceholder = ({ isLarge = false }) => (
+    <div className={`relative z-0 rounded-xl overflow-hidden ${isLarge ? 'h-auto aspect-[3/4] sm:aspect-auto sm:h-[80vh] sm:max-h-[700px]' : 'h-[400px] sm:h-[500px] md:h-[600px]'} w-full bg-gradient-to-b from-background via-background/90 to-background shadow-2xl`}>
+      {/* Abstract geometric shape background */}
+      <div className="absolute inset-0 opacity-20">
+        <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id={isLarge ? "grad1-lg" : "grad1"} x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.5"/>
+              <stop offset="100%" stopColor="var(--secondary)" stopOpacity="0.5"/>
+            </linearGradient>
+            <linearGradient id={isLarge ? "grad2-lg" : "grad2"} x1="100%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.5"/>
+              <stop offset="100%" stopColor="var(--primary)" stopOpacity="0.5"/>
+            </linearGradient>
+          </defs>
+          <polygon points="0,0 100,0 100,100 0,100" fill={`url(#${isLarge ? "grad1-lg" : "grad1"})`} />
+          <path d="M0,0 C50,50 50,50 100,0 V100 H0 Z" fill={`url(#${isLarge ? "grad2-lg" : "grad2"})`} fillOpacity="0.5" />
+          <circle cx="50" cy="50" r="30" fill="none" stroke="var(--primary)" strokeWidth="0.5" strokeDasharray="1,1" />
+          <circle cx="50" cy="50" r="40" fill="none" stroke="var(--secondary)" strokeWidth="0.5" strokeDasharray="1,1" />
+        </svg>
+      </div>
+      
+      {/* Animated profile silhouette */}
+      <motion.div 
+        className="absolute inset-0 flex items-center justify-center"
+        initial={{ opacity: 0.7 }}
+        animate={{ 
+          opacity: [0.7, 0.9, 0.7],
+          scale: [1, 1.01, 1]
+        }}
+        transition={{ 
+          duration: 4, 
+          repeat: Infinity, 
+          repeatType: "reverse" 
+        }}
+      >
+        <div className={`relative ${isLarge ? 'w-3/4 h-3/4' : 'w-4/5 h-4/5'}`}>
+          {/* Abstract profile representation */}
+          <div className={`absolute top-[20%] left-1/2 -translate-x-1/2 ${isLarge ? 'w-[30%] h-[30%]' : 'w-[35%] h-[35%]'} rounded-full bg-gradient-to-b from-primary/40 to-secondary/40 blur-sm`}></div>
+          <div className={`absolute top-[55%] left-1/2 -translate-x-1/2 ${isLarge ? 'w-[45%] h-[35%]' : 'w-[55%] h-[40%]'} rounded-[40px] bg-gradient-to-b from-secondary/30 to-primary/30 blur-sm`}></div>
+          
+          {/* Geometric accents */}
+          <motion.div 
+            className={`absolute top-[15%] left-[20%] ${isLarge ? 'w-[12px] h-[12px]' : 'w-[8px] h-[8px]'} rounded-full bg-primary`}
+            animate={{ 
+              y: [0, 5, 0],
+              opacity: [0.5, 1, 0.5]
+            }}
+            transition={{ duration: 2, repeat: Infinity }}
+          />
+          <motion.div 
+            className={`absolute top-[20%] right-[25%] ${isLarge ? 'w-[10px] h-[10px]' : 'w-[6px] h-[6px]'} rounded-full bg-secondary`}
+            animate={{ 
+              y: [0, -8, 0],
+              opacity: [0.5, 1, 0.5]
+            }}
+            transition={{ duration: 3, repeat: Infinity, delay: 0.5 }}
+          />
+          <motion.div 
+            className={`absolute bottom-[30%] left-[30%] ${isLarge ? 'w-[15px] h-[15px]' : 'w-[10px] h-[10px]'} rounded-full bg-accent`}
+            animate={{ 
+              y: [0, 8, 0],
+              opacity: [0.5, 1, 0.5]
+            }}
+            transition={{ duration: 2.5, repeat: Infinity, delay: 1 }}
+          />
+        </div>
+      </motion.div>
+      
+      {/* Decorative elements */}
+      <div className="absolute bottom-0 inset-x-0 h-[20%] bg-gradient-to-t from-primary/10 to-transparent"></div>
+      <div className="absolute top-0 inset-x-0 h-[20%] bg-gradient-to-b from-secondary/10 to-transparent"></div>
+      
+      {/* Grid overlay */}
+      <div className="absolute inset-0 opacity-10 bg-[linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)] bg-[size:20px_20px]"></div>
+      
+      {/* Particle effect */}
+      <motion.div
+        className="absolute inset-0"
+        initial={{ opacity: 0.6 }}
+        animate={{ opacity: [0.6, 0.8, 0.6] }}
+        transition={{ duration: 4, repeat: Infinity, repeatType: "reverse" }}
+      >
+        {Array.from({ length: isLarge ? 40 : 20 }).map((_, i) => (
+          <motion.div
+            key={i}
+            className={`absolute ${isLarge ? 'w-1.5 h-1.5' : 'w-1 h-1'} rounded-full bg-white/60`}
+            style={{
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+            }}
+            animate={{
+              opacity: [0, 1, 0],
+              scale: [0, 1, 0],
+            }}
+            transition={{
+              duration: 2 + Math.random() * 2,
+              repeat: Infinity,
+              delay: Math.random() * 2,
+            }}
+          />
+        ))}
+      </motion.div>
+    </div>
+  );
 
   return (
     <section id="about" className="pt-24 pb-12 relative overflow-hidden" ref={sectionRef}>
@@ -139,19 +279,27 @@ export default function About() {
         >
           {/* Image with 3D tilt effect */}
           <motion.div 
-            className="lg:w-2/5"
+            className="w-full lg:w-2/5 mb-10 lg:mb-0"
             variants={itemVariants}
             style={{ y: imageY }}
             ref={imageRef}
           >
             <motion.div 
-              className="relative rounded-xl overflow-hidden"
+              className="relative rounded-xl overflow-hidden cursor-pointer group max-w-md mx-auto"
               style={{
-                transform: `perspective(1000px) rotateX(${mousePosition.y}deg) rotateY(${-mousePosition.x}deg)`
+                transform: isProfileExpanded ? 'none' : `perspective(1000px) rotateX(${mousePosition.y}deg) rotateY(${-mousePosition.x}deg)`
               }}
               whileHover={{ scale: 1.02 }}
+              onClick={() => setIsProfileExpanded(true)}
               transition={{ type: "spring", stiffness: 400, damping: 10 }}
             >
+              {/* View indicator on hover */}
+              {/* <div className="absolute inset-0 z-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-background/30 backdrop-blur-sm">
+                <div className="bg-primary text-white px-4 py-2 rounded-full font-semibold flex items-center gap-2">
+                  <span>View Profile</span>
+                </div>
+              </div> */}
+
               {/* Shimmer effect */}
               <motion.div 
                 className="absolute inset-0 w-full h-full z-20 pointer-events-none"
@@ -169,56 +317,15 @@ export default function About() {
                 }}
               />
               
-              {/* Animated border gradient */}
-              <div className="absolute -inset-1 bg-gradient-to-r from-primary via-secondary to-accent opacity-70 blur-sm rounded-xl animate-pulse"></div>
+              {/* Animated gradient background */}
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-primary via-secondary to-primary opacity-80 blur-sm rounded-xl animate-pulse"></div>
               
               {/* Animated inner border */}
-              <div className="absolute inset-0 z-10 rounded-xl border border-white/10"></div>
+              <div className="absolute inset-[1px] z-10 rounded-xl border border-white/20 backdrop-blur-sm bg-background/10"></div>
               
-              {/* Image */}
-              <div className="relative z-0 rounded-xl overflow-hidden shadow-2xl">
-                <motion.div
-                  initial={{ filter: "brightness(0.8) contrast(1.2)", scale: 1.05 }}
-                  animate={{ 
-                    filter: ["brightness(0.8) contrast(1.2)", "brightness(1) contrast(1)", "brightness(0.9) contrast(1.1)"],
-                    scale: [1.05, 1, 1.02]
-                  }}
-                  transition={{ 
-                    duration: 8, 
-                    repeat: Infinity, 
-                    repeatType: "reverse",
-                    times: [0, 0.5, 1]
-                  }}
-                  className="w-full h-full"
-                >
-                  <Image 
-                    src="https://placehold.co/500x600/6d28d9/FFFFFF?text=About+Sibabalwe" 
-                    alt="About Sibabalwe" 
-                    width={500} 
-                    height={600} 
-                    className="w-full object-cover transition-transform"
-                  />
-                </motion.div>
-                
-                {/* Animated photo elements */}
-                <motion.div 
-                  className="absolute top-0 left-0 right-0 h-full bg-gradient-to-b from-primary/30 via-transparent to-transparent mix-blend-overlay"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: [0, 0.7, 0] }}
-                  transition={{ duration: 5, repeat: Infinity, repeatType: "reverse" }}
-                />
-                
-                {/* Light sweep effect */}
-                <motion.div 
-                  className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/30 to-transparent"
-                  initial={{ x: "-100%" }}
-                  animate={{ x: "200%" }}
-                  transition={{ duration: 3.5, repeat: Infinity, repeatDelay: 4 }}
-                  style={{ mixBlendMode: "overlay" }}
-                />
-                
-                {/* Overlay gradient */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+              {/* Profile placeholder */}
+              <div className="relative">
+                <ProfilePlaceholder />
               </div>
               
               {/* Floating badge */}
@@ -235,7 +342,7 @@ export default function About() {
           
           {/* Content */}
           <motion.div 
-            className="lg:w-3/5"
+            className="w-full lg:w-3/5"
             variants={itemVariants}
             style={{ y: contentY }}
           >
@@ -348,18 +455,59 @@ export default function About() {
             </motion.div>
           </motion.div>
         </motion.div>
-
-        {/* Timeline Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.7, delay: 0.5 }}
-          className="mt-24"
-        >
-          <Timeline />
-        </motion.div>
       </div>
+      
+      {/* Full-screen modal for profile */}
+      <AnimatePresence>
+        {isProfileExpanded && (
+          <motion.div 
+            className="fixed inset-0 z-[200] bg-background/80 backdrop-blur-lg flex items-center justify-center p-2 sm:p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsProfileExpanded(false)}
+          >
+            <motion.div
+              className="relative w-full max-w-4xl mx-auto max-h-[95vh] overflow-auto"
+              variants={modalVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Close button */}
+              <button
+                className="absolute top-2 right-2 sm:top-4 sm:right-4 z-50 bg-background/80 backdrop-blur-sm p-2 rounded-full shadow-lg border border-border text-foreground hover:text-primary transition-colors"
+                onClick={() => setIsProfileExpanded(false)}
+              >
+                <FaTimes size={20} />
+              </button>
+              
+              {/* Modal content */}
+              <div className="glass p-2 sm:p-4 rounded-2xl backdrop-blur-md bg-background/30 border border-white/10 shadow-2xl">
+                <div className="rounded-xl overflow-hidden">
+                  {/* Animated gradient background */}
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-primary via-secondary to-primary opacity-80 blur-sm rounded-xl animate-pulse"></div>
+                  
+                  {/* Animated inner border */}
+                  <div className="absolute inset-[1px] z-10 rounded-xl border border-white/20 backdrop-blur-sm bg-background/10"></div>
+                  
+                  {/* Large profile placeholder */}
+                  <div className="relative">
+                    <ProfilePlaceholder isLarge={true} />
+                    
+                    {/* Floating badge */}
+                    <div className="absolute top-3 left-3 sm:top-6 sm:left-6 bg-background/80 backdrop-blur-sm p-2 sm:p-3 px-3 sm:px-4 rounded-xl shadow-lg border border-border z-20 font-medium text-primary">
+                      <h3 className="text-lg sm:text-xl font-bold">Sibabalwe</h3>
+                      <p className="text-sm sm:text-base text-foreground/80">Full Stack Developer</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       
       {/* Initialize particles */}
       <script dangerouslySetInnerHTML={{

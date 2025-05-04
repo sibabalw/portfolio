@@ -15,6 +15,78 @@ import {
   FaExclamationTriangle
 } from 'react-icons/fa';
 
+// Custom Animated Input component with floating label
+const AnimatedInput = ({ 
+  type = 'text', 
+  id, 
+  name, 
+  value, 
+  onChange, 
+  label, 
+  disabled = false,
+  rows = 1
+}) => {
+  const [isFocused, setIsFocused] = useState(false);
+  const isTextarea = type === 'textarea';
+  const hasValue = value.length > 0;
+  
+  return (
+    <div className="relative">
+      {/* Bottom border animation container */}
+      <div className="relative">
+        {isTextarea ? (
+          <textarea
+            id={id}
+            name={name}
+            value={value}
+            onChange={onChange}
+            rows={rows}
+            required
+            className="w-full px-4 pt-6 pb-2 bg-background/30 border-none focus:outline-none peer text-foreground resize-none rounded-t-xl"
+            disabled={disabled}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+          />
+        ) : (
+          <input
+            type={type}
+            id={id}
+            name={name}
+            value={value}
+            onChange={onChange}
+            required
+            className="w-full px-4 pt-6 pb-2 bg-background/30 border-none focus:outline-none peer text-foreground rounded-t-xl"
+            disabled={disabled}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+          />
+        )}
+        
+        {/* Animated Label */}
+        <label 
+          htmlFor={id}
+          className={`absolute left-4 transition-all duration-200 pointer-events-none ${
+            (isFocused || hasValue) 
+              ? 'text-xs text-primary top-2' 
+              : 'text-base text-foreground/70 top-4'
+          }`}
+        >
+          {label}
+        </label>
+        
+        {/* Bottom border with animation - UPDATED FOR BETTER VISIBILITY */}
+        <div className="absolute bottom-0 left-0 h-[2px] w-full bg-white/30 shadow-sm"></div>
+        <div 
+          className={`absolute bottom-0 left-0 h-[3px] bg-gradient-to-r from-primary to-secondary transform origin-left transition-transform duration-300 ${
+            isFocused ? 'scale-x-100' : hasValue ? 'scale-x-100 opacity-70' : 'scale-x-0'
+          }`}
+          style={{ width: '100%' }}
+        ></div>
+      </div>
+    </div>
+  );
+};
+
 export default function Contact() {
   const [formStatus, setFormStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [formData, setFormData] = useState({
@@ -361,93 +433,64 @@ export default function Contact() {
                   ref={formRef}
                 >
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div>
-                      <label htmlFor="name" className="block text-sm font-medium text-foreground/70 mb-2">
-                        Your Name
-                      </label>
-                      <motion.div
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        <input
-                          type="text"
-                          id="name"
-                          name="name"
-                          value={formData.name}
-                          onChange={handleChange}
-                          required
-                          className="w-full px-4 py-3 rounded-xl bg-background/30 border border-white/10 focus:border-primary focus:ring focus:ring-primary/20 outline-none transition-all duration-200 backdrop-blur-sm text-foreground"
-                          placeholder="John Doe"
-                          disabled={formStatus === 'submitting'}
-                        />
-                      </motion.div>
-                    </div>
-                    <div>
-                      <label htmlFor="email" className="block text-sm font-medium text-foreground/70 mb-2">
-                        Email Address
-                      </label>
-                      <motion.div
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        <input
-                          type="email"
-                          id="email"
-                          name="email"
-                          value={formData.email}
-                          onChange={handleChange}
-                          required
-                          className="w-full px-4 py-3 rounded-xl bg-background/30 border border-white/10 focus:border-primary focus:ring focus:ring-primary/20 outline-none transition-all duration-200 backdrop-blur-sm text-foreground"
-                          placeholder="john@example.com"
-                          disabled={formStatus === 'submitting'}
-                        />
-                      </motion.div>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="subject" className="block text-sm font-medium text-foreground/70 mb-2">
-                      Subject
-                    </label>
                     <motion.div
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
-                      <input
-                        type="text"
-                        id="subject"
-                        name="subject"
-                        value={formData.subject}
+                      <AnimatedInput
+                        id="name"
+                        name="name"
+                        value={formData.name}
                         onChange={handleChange}
-                        required
-                        className="w-full px-4 py-3 rounded-xl bg-background/30 border border-white/10 focus:border-primary focus:ring focus:ring-primary/20 outline-none transition-all duration-200 backdrop-blur-sm text-foreground"
-                        placeholder="Project Inquiry"
+                        label="Your Name"
+                        disabled={formStatus === 'submitting'}
+                      />
+                    </motion.div>
+                    <motion.div
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <AnimatedInput
+                        type="email"
+                        id="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        label="Email Address"
                         disabled={formStatus === 'submitting'}
                       />
                     </motion.div>
                   </div>
                   
-                  <div>
-                    <label htmlFor="message" className="block text-sm font-medium text-foreground/70 mb-2">
-                      Message
-                    </label>
-                    <motion.div
-                      whileHover={{ scale: 1.01 }}
-                      whileTap={{ scale: 0.99 }}
-                    >
-                      <textarea
-                        id="message"
-                        name="message"
-                        value={formData.message}
-                        onChange={handleChange}
-                        required
-                        rows={5}
-                        className="w-full px-4 py-3 rounded-xl bg-background/30 border border-white/10 focus:border-primary focus:ring focus:ring-primary/20 outline-none transition-all duration-200 backdrop-blur-sm text-foreground resize-none"
-                        placeholder="Your message here..."
-                        disabled={formStatus === 'submitting'}
-                      ></textarea>
-                    </motion.div>
-                  </div>
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <AnimatedInput
+                      id="subject"
+                      name="subject"
+                      value={formData.subject}
+                      onChange={handleChange}
+                      label="Subject"
+                      disabled={formStatus === 'submitting'}
+                    />
+                  </motion.div>
+                  
+                  <motion.div
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                  >
+                    <AnimatedInput
+                      type="textarea"
+                      id="message"
+                      name="message"
+                      value={formData.message}
+                      onChange={handleChange}
+                      label="Message"
+                      disabled={formStatus === 'submitting'}
+                      rows={5}
+                    />
+                  </motion.div>
                   
                   <motion.div
                     whileHover={{ scale: 1.03 }}
