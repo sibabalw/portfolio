@@ -15,6 +15,17 @@ import {
   FaExclamationTriangle
 } from 'react-icons/fa';
 
+interface AnimatedInputProps {
+  type?: 'text' | 'email' | 'textarea';
+  id: string;
+  name: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  label: string;
+  disabled?: boolean;
+  rows?: number;
+}
+
 // Custom Animated Input component with floating label
 const AnimatedInput = ({ 
   type = 'text', 
@@ -25,7 +36,7 @@ const AnimatedInput = ({
   label, 
   disabled = false,
   rows = 1
-}) => {
+}: AnimatedInputProps) => {
   const [isFocused, setIsFocused] = useState(false);
   const isTextarea = type === 'textarea';
   const hasValue = value.length > 0;

@@ -2,7 +2,7 @@ import { useRef, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Stars, OrbitControls, useTexture, PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
-import { useScroll, useTransform } from 'framer-motion';
+import { useScroll, useTransform, MotionValue } from 'framer-motion';
 
 function Planet({ position = [0, 0, 0], color = '#5686F5', size = 1, rotationSpeed = 0.005 }) {
   const meshRef = useRef<THREE.Mesh>(null);
@@ -75,9 +75,8 @@ function FloatingParticles({ count = 50, spread = 10 }) {
       <bufferGeometry>
         <bufferAttribute
           attach="attributes-position"
+          args={[particles, 3]}
           count={particles.length / 3}
-          array={particles}
-          itemSize={3}
         />
       </bufferGeometry>
       <pointsMaterial 
@@ -92,7 +91,7 @@ function FloatingParticles({ count = 50, spread = 10 }) {
   );
 }
 
-function AnimatedScene({ scrollYProgress }) {
+function AnimatedScene({ scrollYProgress }: { scrollYProgress: MotionValue<number> }) {
   const cameraPositionZ = useTransform(scrollYProgress, [0, 0.5], [10, 15]);
   const sceneRotationY = useTransform(scrollYProgress, [0, 1], [0, Math.PI * 0.25]);
   
